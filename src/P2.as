@@ -28,13 +28,28 @@ INT15			WORD TEMP
 
 				ORIG 0000h
 				JMP inicializa
-INT1F:			RTI
-INT2F:			RTI
-INT3F:			RTI
-INT4F:			RTI
-INT5F:			RTI
-INT6F:			RTI
-INTIA:			RTI
+
+;INTERRUPCOES
+INT1F:			SHL R2, 3
+				ADD R2, 1
+				RTI
+INT2F:			SHL R2, 3
+				ADD R2, 2
+				RTI
+INT3F:			SHL R2, 3
+				ADD R2, 3
+				RTI
+INT4F:			SHL R2, 3
+				ADD R2, 4
+				RTI
+INT5F:			SHL R2, 3
+				ADD R2, 5
+				RTI
+INT6F:			SHL R2, 3
+				ADD R2, 6
+				RTI
+INTIA:			NOP
+				RTI
 TEMP:			MOV R1, M[LEDS]
 				SHR R1, 1
 				JMP.Z derrota
@@ -54,11 +69,12 @@ muda_linha:		MOV R1, 000Ah			;codigo de mudanca de linha
 opcao:			MOV R4, 4				;inicializa contador de tracos
 				CMP R7, 12				;verifica o numero de tentativas
 				JMP.Z derrota			;se numero tentativas > 12, utilizador perde
-				CMP R2, 0000h			;verifica se utilizador já introduzio tentativa
-				BR.Z opcao				;loop até utilizador introduizir tentativa
+				CMP R2, 01FFh			;verifica se utilizador já introduzio tentativa
+				BR.NP opcao				;loop até utilizador introduizir tentativa
 
 
-tentativa:		INC R7					;incrementa numero de tentativas
+tentativa:		DSI
+				INC R7					;incrementa numero de tentativas
 				MOV R6, 0				;inicia contador de pecas
 				PUSH R1					;coloca chave mestra no stack (outra vez)
 				PUSH R2							;coloca tentativa no stack
@@ -172,9 +188,16 @@ corrige:		MOV R2, 6						;coloca em R2 o valor 6
 				CMP R7, 4						;se as pecas ainda não estiverem todas corrigidas
 				BR.NZ corrige					;salta para corrige
 
-inicio:			MOV R1, M[SP+1]			;poe em R1 o valor da chave mestre
+inicio:			MOV R1, FFFFh
+				MOV M[LEDS], R1
+				MOV R1, M[SP+1]			;poe em R1 o valor da chave mestre
 				MOV R2, 0						;poe valor da tentativa a 0
 				MOV R7, 0						;inicializa contador tentativas
+				MOV R4, 5
+				MOV M[TEMP_CONT], R4
+				MOV R4, 1
+				MOV M[TEMP_INIC], R4
+				ENI
 				JMP opcao						;salta para a rotina label opcao
 				
 derrota:		POP R1							;retira chave corrigida do stack
