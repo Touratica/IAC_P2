@@ -199,7 +199,8 @@ inicio:			MOV R1, FFFFh
 				MOV M[TEMP_INIC], R4
 				ENI
 				JMP opcao						;salta para a rotina label opcao
-				
+
+reinicio:		
 derrota:		POP R1							;retira chave corrigida do stack
 				MOV R1, 'P'						;nas linhas seguintes, a mensagem
 				MOV M[FFFEh], R1			;PERDEU! e escrita na janela de texto
