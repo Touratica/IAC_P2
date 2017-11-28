@@ -51,5 +51,6 @@
 	seZero                           00B8            LABEL
 	corrige                          00BE            LABEL
 	inicio                           00CE            LABEL
-	derrota                          00E3            LABEL
-	vitoria                          0108            LABEL
+	reinicio                         00E3            LABEL
+	derrota                          00E4            LABEL
+	vitoria                          0109            LABEL
