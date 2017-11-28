@@ -3,16 +3,19 @@
 ;uma, aparece uma mensagem na janela de texto indicando quantas pecas e que o utilizador pos no
 ;sitio certo, quantas e que pos no sitio errado e quantas e que nao existem na chave
 SP_INICIAL		EQU FDFFh
-DISPLAY_0		EQU FFF0h
-DISPLAY_1		EQU FFF1h
-DISPLAY_2		EQU FFF2h
-DISPLAY_3		EQU FFF3h
-TEMP_CONT		EQU FFF6h
-TEMP_INIC		EQU FFF7h
-LEDS			EQU FFF8h
+IO_DISPLAY0		EQU FFF0h
+IO_DISPLAY1		EQU FFF1h
+IO_DISPLAY2		EQU FFF2h
+IO_DISPLAY3		EQU FFF3h
+IO_TEMP_CONT	EQU FFF6h
+IO_TEMP_INIC	EQU FFF7h
+IO_LEDS			EQU FFF8h
 INT_MASK_ADDR	EQU FFFAh
 INT_MASK		EQU 1000010001111110b
 MASCARA			EQU 8016h
+FIM_STR			EQU "@"
+strFim			WORD "Fim do Jogo@"
+strRecomeco		WORD "Carregue em IA para recomecar@"
 
 				ORIG FE01h
 INT1			WORD INT1F
@@ -48,25 +51,27 @@ INT5F:			SHL R2, 3
 INT6F:			SHL R2, 3
 				ADD R2, 6
 				RTI
-INTIA:			NOP
+INTIA:			MOV R4, 5
 				RTI
-TEMP:			MOV R1, M[LEDS]
-				SHR R1, 1
+TEMP:			SHR R1, 1
 				JMP.Z derrota
 				MOV M[LEDS], R1
-				MOV R1, 5
-				MOV M[TEMP_CONT], R1
-				MOV R1, 1
-				MOV M[TEMP_INIC], R1
+				MOV R6, 5
+				MOV M[TEMP_CONT], R6
+				MOV R6, 1
+				MOV M[TEMP_INIC], R6
 				RTI
 
+;CODIGO
 muda_linha:		MOV R1, 000Ah			;codigo de mudanca de linha
 				MOV M[FFFEh], R1		;muda de linha na janela de texto
 				POP R2					;retira ultima entrada do stack
 				MOV R2, 0				;poe valor da tentativa a 0
 				POP R1					;retira ultima entrada do stack
 				MOV R1, M[SP+1]			;poe em R1 o valor da chave
-opcao:			MOV R4, 4				;inicializa contador de tracos
+opcao:			CMP R4, 5
+				BR.Z reinicio
+				MOV R4, 4				;inicializa contador de tracos
 				CMP R7, 12				;verifica o numero de tentativas
 				JMP.Z derrota			;se numero tentativas > 12, utilizador perde
 				CMP R2, 01FFh			;verifica se utilizador já introduzio tentativa
@@ -75,6 +80,7 @@ opcao:			MOV R4, 4				;inicializa contador de tracos
 
 tentativa:		DSI
 				INC R7					;incrementa numero de tentativas
+				MOV R1, R6
 				MOV R6, 0				;inicia contador de pecas
 				PUSH R1					;coloca chave mestra no stack (outra vez)
 				PUSH R2					;coloca tentativa no stack
@@ -155,6 +161,8 @@ ver_tracos:		CMP R4, 0				;se contador de tracos for 0, nao falta por mais nenhu
 
 inicializa:		MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
 				MOV SP, R1				;inicializa SP com o valor de R1
+				MOV R7, INT_MASK
+				MOV M[INT_MASK_ADDR], R7
 				MOV R1, 1144h			;valor para calculo da primeira chave
 				PUSH R1					;coloca esse valor no stack
 
@@ -190,7 +198,7 @@ corrige:		MOV R2, 6				;coloca em R2 o valor 6
 
 inicio:			MOV R1, FFFFh
 				MOV M[LEDS], R1
-				MOV R1, M[SP+1]			;poe em R1 o valor da chave mestre
+				MOV R6, M[SP+1]			;poe em R6 o valor da chave mestre
 				MOV R2, 0				;poe valor da tentativa a 0
 				MOV R7, 0				;inicializa contador tentativas
 				MOV R4, 5
@@ -200,28 +208,13 @@ inicio:			MOV R1, FFFFh
 				ENI
 				JMP opcao				;salta para a rotina label opcao
 
-reinicio:		NOP
-derrota:		POP R1					;retira chave corrigida do stack
-				MOV R1, 'P'				;nas linhas seguintes, a mensagem
-				MOV M[FFFEh], R1		;PERDEU! e escrita na janela de texto
-				MOV R1, 'E'
-				MOV M[FFFEh], R1
-				MOV R1, 'R'
-				MOV M[FFFEh], R1
-				MOV R1, 'D'
-				MOV M[FFFEh], R1
-				MOV R1, 'E'
-				MOV M[FFFEh], R1
-				MOV R1, 'U'
-				MOV M[FFFEh], R1
-				MOV R1, '!'
-				MOV M[FFFEh], R1
-				MOV R1, 000Ah			;codigo de mudanca de linha
-				MOV M[FFFEh], R1		;muda de linha na janela de texto
-				MOV R1, M[SP+1]			;poe valor da ultima chave por corrigir em R1
+reinicio:		CALL mensagem_recom
+				NOP
+mensagem_der:	POP R1					;retira chave corrigida do stack
+
 				JMP random				;salta para random para gerar nova chave de jogo
 
-vitoria:		POP R2					;retira ultima entrada do stack
+mensagem_vit:	POP R2					;retira ultima entrada do stack
 				POP R1					;retira ultima entrada do stack
 				MOV R1, 000Ah			;codigo de mudanca de linha
 				MOV M[FFFEh], R1		;muda de linha na janela de texto
