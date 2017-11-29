@@ -1,7 +1,8 @@
-;Este programa e um jogo de Mastermind, que gera uma chave secreta e que vai aceitando tentativas
-;do utilizador em R2 ate este acertar na combinacao. Tem 12 tentativas para acertar e depois de cada
-;uma, aparece uma mensagem na janela de texto indicando quantas pecas e que o utilizador pos no
-;sitio certo, quantas e que pos no sitio errado e quantas e que nao existem na chave
+;Este programa e um jogo de Mastermind, que gera uma chave secreta e que vai
+;aceitando tentativas do utilizador em R2 ate este acertar na combinacao. Tem 12
+;tentativas para acertar e depois de cada uma, aparece uma mensagem na janela de
+;texto indicando quantas pecas e que o utilizador pos no sitio certo, quantas e
+;que pos no sitio errado e quantas e que nao existem na chave.
 SP_INICIAL		EQU FDFFh
 IO_DISPLAY0		EQU FFF0h
 IO_DISPLAY1		EQU FFF1h
@@ -73,22 +74,22 @@ TEMP:			SHR R1, 1
 ;CODIGO
 muda_linha:		MOV R1, 000Ah				;codigo de mudanca de linha
 			MOV M[FFFEh], R1			;muda de linha na janela de texto
-			POP R2							;retira ultima entrada do stack
-			MOV R2, 0						;poe valor da tentativa a 0
+			POP R2					;retira ultima entrada do stack
+			MOV R2, 0				;poe valor da tentativa a 0
 			MOV R1, FFFFh
 			MOV M[IO_LEDS], R1
-			MOV R2, R0
-			POP R1							;retira ultima entrada do stack
+			POP R1					;retira ultima entrada do stack
 			ENI
 opcao:			CMP R4, 5
 			JMP.Z reinicio
 			MOV R4, 4				;inicializa contador de tracos
 			CMP R7, 12				;verifica o numero de tentativas
-			JMP.Z fim			;se numero tentativas > 12, utilizador perde
-			CMP R2, 01FFh			;verifica se utilizador já introduzio tentativa
+			JMP.Z fim				;se numero tentativas > 12, utilizador perde
+			CMP R2, 01FFh				;verifica se utilizador já introduzio tentativa
 			BR.NP opcao				;loop até utilizador introduizir tentativa
 
-tentativa:		DSI
+tentativa:		PUSH R2
+			DSI
 			INC R7					;incrementa numero de tentativas
 			PUSH R7
 			MOV R6, 10
