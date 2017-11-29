@@ -14,8 +14,12 @@ INT_MASK_ADDR	EQU FFFAh
 INT_MASK		EQU 1000010001111110b
 MASCARA			EQU 8016h
 FIM_STR			EQU "@"
-strFim			WORD "Fim do Jogo@"
-strRecomeco		WORD "Carregue em IA para recomecar@"
+
+# VARIAVIES
+				ORIG 8000h
+strFim			STR "Fim do Jogo@"
+strRecomeco		STR "Carregue em IA para recomecar@"
+strInicio		STR "Carregue no botao IA para iniciar@"
 
 				ORIG FE01h
 INT1			WORD INT1F
@@ -163,10 +167,19 @@ inicializa:		MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
 				MOV SP, R1				;inicializa SP com o valor de R1
 				MOV R7, INT_MASK
 				MOV M[INT_MASK_ADDR], R7
-				MOV R1, 1144h			;valor para calculo da primeira chave
-				PUSH R1					;coloca esse valor no stack
+				CALL limpa_LCD
+				CALL mensagem_inic
+				MOV R4, R0
+				MOV R1, R0
+ciclo			INC R1					;no de iteracoes geram primeira chave
+				CMP R4, 5
+				BR.Z ciclo
+				CMP R1, 0
+				BR salto
+				INC R1
+salto:			PUSH R1					;coloca esse valor no stack
 
-random:			MOV R7, 0				;poe contador de pecas a 0
+random:			MOV R7, R0				;poe contador de pecas a 0
 				MOV R1, M[SP+1]			;poe em R1 o valor da chave nao corrigida
 				AND R1, 0001h			;seleciona o bit menos significativo
 				BR.Z seZero				;se bit = 0, salta para seZero
@@ -199,8 +212,8 @@ corrige:		MOV R2, 6				;coloca em R2 o valor 6
 inicio:			MOV R1, FFFFh
 				MOV M[LEDS], R1
 				MOV R6, M[SP+1]			;poe em R6 o valor da chave mestre
-				MOV R2, 0				;poe valor da tentativa a 0
-				MOV R7, 0				;inicializa contador tentativas
+				MOV R2, R0				;poe valor da tentativa a 0
+				MOV R7, R0				;inicializa contador tentativas
 				MOV R4, 5
 				MOV M[TEMP_CONT], R4
 				MOV R4, 1
@@ -210,30 +223,27 @@ inicio:			MOV R1, FFFFh
 
 reinicio:		CALL mensagem_recom
 				NOP
-mensagem_der:	POP R1					;retira chave corrigida do stack
 
-				JMP random				;salta para random para gerar nova chave de jogo
+fim:			POP R2
+				POP R1
+				CALL mensagem_fim
+# MENSAGENS
+mensagem_inic:	MOV R1, M[strInicio]
+				CMP R1, FIM_STR
+				BR.Z fim_mensagem
 
-mensagem_vit:	POP R2					;retira ultima entrada do stack
-				POP R1					;retira ultima entrada do stack
-				MOV R1, 000Ah			;codigo de mudanca de linha
+				BR mensagem_inic
+
+mensagem_fim:	MOV R1, 000Ah			;codigo de mudanca de linha
 				MOV M[FFFEh], R1		;muda de linha na janela de texto
-				MOV R1, 'G'				;nas linhas seguintes, a mensagem
-				MOV M[FFFEh], R1		;GANHOU! apararece na janela de texto
-				MOV R1, 'A'
-				MOV M[FFFEh], R1
-				MOV R1, 'N'
-				MOV M[FFFEh], R1
-				MOV R1, 'H'
-				MOV M[FFFEh], R1
-				MOV R1, 'O'
-				MOV M[FFFEh], R1
-				MOV R1, 'U'
-				MOV M[FFFEh], R1
-				MOV R1, '!'
-				MOV M[FFFEh], R1
-				MOV R1, 000Ah			;codigo de mudanca de linha
-				MOV M[FFFEh], R1		;muda de linha na janela de texto
-				POP R1					;retira ultima entrada do stack
-				MOV R1, M[SP +1]		;poe valor da ultima chave por corrigir em R1
-				JMP random				;salta para random para gerar nova chave de jogo
+				MOV R1, M[strFim]
+				CMP R1, FIM_STR
+				BR.Z mensagem_recom
+
+				BR mensagem_fim
+mensagem_recom:	MOV R1, M[strRecomeco]
+				CMP R1, FIM_STR
+				BR.Z fim_mensagem
+
+				BR mensagem_recom
+fim_mensagem:	RET
