@@ -90,7 +90,20 @@ opcao:			CMP R4, 5
 
 tentativa:		DSI
 			INC R7					;incrementa numero de tentativas
-			MOV R1, R6
+			PUSH R7
+			MOV R6, 10
+			DIV R7, R6
+			MOV M[IO_DISPLAY0], R6
+			MOV R6, 10
+			DIV R7, R6
+			MOV M[IO_DISPLAY1], R6
+			MOV R6, 10
+			DIV R7, R6
+			MOV M[IO_DISPLAY2], R6
+			MOV R6, 10
+			DIV R7, R6
+			MOV M[IO_DISPLAY3], R6
+			POP R7
 			MOV R6, 0				;inicia contador de pecas
 			PUSH R1					;coloca chave mestra no stack (outra vez)
 			PUSH R2					;coloca tentativa no stack
