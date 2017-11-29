@@ -4,16 +4,22 @@
 	             Name               Value        Type
 	==============================|=======|===============
 	SP_INICIAL                       FDFF         CONSTANT
-	DISPLAY_0                        FFF0         CONSTANT
-	DISPLAY_1                        FFF1         CONSTANT
-	DISPLAY_2                        FFF2         CONSTANT
-	DISPLAY_3                        FFF3         CONSTANT
-	TEMP_CONT                        FFF6         CONSTANT
-	TEMP_INIC                        FFF7         CONSTANT
-	LEDS                             FFF8         CONSTANT
+	IO_DISPLAY0                      FFF0         CONSTANT
+	IO_DISPLAY1                      FFF1         CONSTANT
+	IO_DISPLAY2                      FFF2         CONSTANT
+	IO_DISPLAY3                      FFF3         CONSTANT
+	IO_TEMP_CONT                     FFF6         CONSTANT
+	IO_TEMP_INIC                     FFF7         CONSTANT
+	IO_LEDS                          FFF8         CONSTANT
 	INT_MASK_ADDR                    FFFA         CONSTANT
 	INT_MASK                         847E         CONSTANT
+	CONTROL_TEXT                     FFFC         CONSTANT
+	WRITE_TEXT                       FFFE         CONSTANT
 	MASCARA                          8016         CONSTANT
+	FIM_STR                          0040         CONSTANT
+	strFim                           8000           STRING
+	strRecomeco                      800C           STRING
+	strInicio                        802A           STRING
 	INT1                             FE01         VARIABLE
 	INT2                             FE02         VARIABLE
 	INT3                             FE03         VARIABLE
@@ -31,26 +37,34 @@
 	INT5F                            0012            LABEL
 	INT6F                            0016            LABEL
 	INTIA                            001A            LABEL
-	TEMP                             001C            LABEL
-	muda_linha                       002A            LABEL
-	opcao                            0034            LABEL
-	tentativa                        003D            LABEL
-	tenta_certa                      0044            LABEL
-	verifica                         0052            LABEL
-	tentativa2                       0059            LABEL
-	tenta_errada                     005B            LABEL
-	inic_errada                      0063            LABEL
-	roda_tent                        006F            LABEL
-	verifica2                        0075            LABEL
-	p_errada                         0079            LABEL
-	p_certa                          008A            LABEL
-	ver_tracos                       009B            LABEL
-	inicializa                       00A5            LABEL
-	random                           00AB            LABEL
-	naoZero                          00B2            LABEL
-	seZero                           00B7            LABEL
-	corrige                          00BD            LABEL
-	inicio                           00CD            LABEL
-	reinicio                         00E2            LABEL
-	derrota                          00E3            LABEL
-	vitoria                          0108            LABEL
+	TEMP                             0021            LABEL
+	muda_linha                       002F            LABEL
+	opcao                            003D            LABEL
+	tentativa                        004A            LABEL
+	tenta_certa                      0051            LABEL
+	verifica                         005F            LABEL
+	tentativa2                       0066            LABEL
+	tenta_errada                     0068            LABEL
+	inic_errada                      0070            LABEL
+	roda_tent                        007C            LABEL
+	verifica2                        0082            LABEL
+	p_errada                         0086            LABEL
+	p_certa                          0097            LABEL
+	ver_tracos                       00A8            LABEL
+	inicializa                       00B2            LABEL
+	iteracoes                        00C4            LABEL
+	salto                            00CD            LABEL
+	random                           00CE            LABEL
+	naoZero                          00D4            LABEL
+	seZero                           00D9            LABEL
+	corrige                          00DF            LABEL
+	inicio                           00EF            LABEL
+	reinicio                         0103            LABEL
+	fim                              0107            LABEL
+	mensagem_inic                    010D            LABEL
+	ciclo_inic                       0113            LABEL
+	mensagem_fim                     011F            LABEL
+	ciclo_fim                        012B            LABEL
+	mensagem_recom                   0138            LABEL
+	ciclo_recom                      013E            LABEL
+	fim_mensagem                     014A            LABEL
