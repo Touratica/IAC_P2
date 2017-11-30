@@ -373,7 +373,7 @@ ciclo_LCD1:		MOV R3, M[R2] ; uma letra de cada vez
 			BR.Z resultado
 			INC R2
 			MOV M[WRITE_LCD],R3
-			INC R1
+			INC R1		
 			MOV M[CONTROL_LCD],R1 ; INC CURSOR
 			BR ciclo_LCD1
 resultado:		MOV R3, 10
@@ -382,6 +382,7 @@ resultado:		MOV R3, 10
 			MOV M[WRITE_LCD], R7
 			INC R1
 			MOV M[CONTROL_LCD],R1 ; INC CURSOR
+			ADD R3, 48
 			MOV M[WRITE_LCD], R3
 			RET
 
