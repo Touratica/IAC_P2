@@ -73,7 +73,7 @@ TEMP:			SHR R1, 1
 
 ;CODIGO
 muda_linha:		MOV R1, 000Ah				;codigo de mudanca de linha
-			MOV M[FFFEh], R1			;muda de linha na janela de texto
+			MOV M[WRITE_TEXT], R1			;muda de linha na janela de texto
 			POP R2					;retira ultima entrada do stack
 			MOV R2, 0				;poe valor da tentativa a 0
 			MOV R1, FFFFh
@@ -103,6 +103,8 @@ tentativa:		DSI
 			MOV R6, 10
 			DIV R7, R6
 			MOV M[IO_DISPLAY3], R6
+			MOV R7, 000Ah
+			MOV M[WRITE_TEXT], R7
 			POP R7
 			MOV R6, 0				;inicia contador de pecas
 			MOV R1, M[SP+1]
@@ -265,23 +267,23 @@ fim:			DSI
 			POP R1
 			JMP random
 ; MENSAGENS
-mensagem_inic:		MOV R2, 0100h
-			MOV M[FFFCh],R2			;posiciona cursor nas primeiras linha e coluna
+mensagem_inic:		MOV R2, 0000h
+			MOV M[CONTROL_TEXT],R2			;posiciona cursor na primeira coluna
 			MOV R5, strInicio
 
 ciclo_inic:		MOV R3, M[R5]
 			CMP R3, FIM_STR
 			JMP.Z fim_mensagem
 			INC R5
-			MOV M[FFFEh], R3
+			MOV M[WRITE_TEXT], R3
 			INC R2
-			MOV M[FFFCh], R2 		; INC CURSOR
+			MOV M[CONTROL_TEXT], R2 		; INC CURSOR
 			BR ciclo_inic
 
 mensagem_fim:		MOV R7, R0
 			MOV M[IO_TEMP_INIC], R7		;para temporizador
-			MOV R2, 0100h
-			MOV M[FFFCh],R2			;posiciona cursor nas primeiras linha e coluna
+			MOV R7, 000Ah
+			ADD M[WRITE_TEXT],R7			;posiciona cursor nas primeiras linha e coluna
 			MOV R5, strFim
 
 ciclo_fim:		MOV R3, M[R5]
@@ -289,25 +291,23 @@ ciclo_fim:		MOV R3, M[R5]
 			CALL.Z fim_mensagem
 			BR.Z mensagem_recom
 			INC R5
-			MOV M[FFFEh], R3
+			MOV M[WRITE_TEXT], R3
 			INC R2
-			MOV M[FFFCh], R2 ; INC CURSOR
+			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
 			BR ciclo_fim
 
-mensagem_recom:		MOV R2, 0100h
-			MOV M[FFFCh],R2			;posiciona cursor nas primeiras linha e coluna
+mensagem_recom:		MOV R5, 000Ah
+			AND M[WRITE_TEXT],R5			;posiciona cursor nas primeiras linha e coluna
 			MOV R5, strRecomeco
 
 ciclo_recom:		MOV R3, M[R5]
 			CMP R3, FIM_STR
 			BR.Z fim_mensagem
 			INC R5
-			MOV M[FFFEh], R3
+			MOV M[WRITE_TEXT], R3
 			INC R2
-			MOV M[FFFCh], R2 ; INC CURSOR
+			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
 			BR ciclo_recom
 
 			BR mensagem_recom
-fim_mensagem:		MOV R1, 000Ah
-			MOV M[FFFEh], R1			;muda de linha na janela de texto
-			RET
+fim_mensagem:		RET
