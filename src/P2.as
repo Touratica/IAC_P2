@@ -174,7 +174,7 @@ p_errada:		MOV R1, M[SP+5]
 			ROL R1, 3				;roda as pecas da chave para a esqueda
 			PUSH R1					;coloca 'nova chave' no stack
 			PUSH R2					;coloca 'nova tentativa' no stack
-			DEC R4					;decrementa contador de tracos
+			DEC R3					;decrementa contador de tracos
 			JMP verifica2			;salta para verifica
 
 p_certa:		MOV R1, M[SP+5]
@@ -191,7 +191,7 @@ p_certa:		MOV R1, M[SP+5]
 			ROL R1, 3				;roda as pecas da chave para a esqueda
 			PUSH R1					;coloca 'nova chave' no stack
 			PUSH R2					;coloca 'nova tentativa' no stack
-			DEC R4					;decrementa contador de tracos
+			DEC R3					;decrementa contador de tracos
 			JMP verifica			;salta para verifica
 
 ver_tracos:		CMP R3, 0				;se contador de tracos for 0, nao falta por mais nenhum
