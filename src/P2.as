@@ -8,6 +8,8 @@ IO_DISPLAY0		EQU FFF0h
 IO_DISPLAY1		EQU FFF1h
 IO_DISPLAY2		EQU FFF2h
 IO_DISPLAY3		EQU FFF3h
+CONTROL_LCD		EQU FFF4h
+WRITE_LCD		EQU FFF5h
 IO_TEMP_CONT		EQU FFF6h
 IO_TEMP_INIC		EQU FFF7h
 IO_LEDS			EQU FFF8h
@@ -23,6 +25,7 @@ FIM_STR			EQU '@'
 strFim			STR 'Fim do Jogo@'
 strRecomeco		STR 'Carregue em IA para recomecar@'
 strInicio		STR 'Carregue no botao IA para iniciar@'
+strPontuacao		STR 'HIGHSCORE: @'
 
 			ORIG FE01h
 INT1			WORD INT1F
@@ -86,7 +89,7 @@ opcao:			CMP R4, 5
 			JMP.Z reinicio
 			MOV R3, 4				;inicializa contador de tracos
 			CMP R7, 12				;verifica o numero de tentativas
-			JMP.Z fim_perdeu			;se numero tentativas > 12, utilizador perde
+			JMP.Z se_perdeu			;se numero tentativas > 12, utilizador perde
 			CMP R2, 01FFh				;verifica se utilizador já introduzio tentativa
 			BR.NP opcao				;loop até utilizador introduizir tentativa
 
@@ -129,7 +132,7 @@ tenta_certa:		INC R6					;incrementa contador de pecas
 verifica:		CMP R6, 4				;verifica se ja testou as 4 pecas
 			BR.NZ tenta_certa		;se nao, salta para tenta_certa
 			CMP R1, 0				;se a 'nova chave' com 0
-			JMP.Z fim			;se for, o jogador acertou tudo e salta para fim
+			JMP.Z se_ganhou			;se for, o jogador acertou tudo e salta para fim
 
 tentativa2:		MOV R6, 0				;inicializa primeiro contador de pecas
 tenta_errada:		POP R2					;poe em R2 o valor da tentativa
@@ -202,12 +205,14 @@ ver_tracos:		CMP R3, 0				;se contador de tracos for 0, nao falta por mais nenhu
 			DEC R3					;decrementa contador de tracos
 			BR ver_tracos			;salta para ver_tracos
 
-inicializa:		MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
+inicializa:		MOV R1, 8000h
+			MOV M[CONTROL_LCD], R1		;inicializa display LCD
+			MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
 			MOV SP, R1				;inicializa SP com o valor de R1
 			PUSH R0
 			MOV R1, INT_MASK
 			MOV M[INT_MASK_ADDR], R1	;ativa interrupcoes
-			;CALL limpa_LCD
+			CALL limpa_LCD
 			MOV R1, FFFFh
 			MOV M[CONTROL_TEXT], R1 		;inicialziar janela de texto
 			MOV R4, R0
@@ -223,7 +228,8 @@ iteracoes:		INC R1					;no de iteracoes geram primeira chave
 			INC R1
 salto:			PUSH R1					;coloca esse valor no stack
 
-random:			MOV R7, R0				;poe contador de pecas a 0
+random:			MOV R4, R0
+			MOV R7, R0				;poe contador de pecas a 0
 			MOV R1, M[SP+1]			;poe em R1 o valor da chave nao corrigida
 			AND R1, 0001h			;seleciona o bit menos significativo
 			BR.Z seZero				;se bit = 0, salta para seZero
@@ -281,65 +287,111 @@ ciclo_reinicio:		CMP R4, 5
 			JMP.Z random
 			BR ciclo_reinicio
 
-fim_perdeu:		DSI
+se_ganhou:		DSI
+			CMP R7, M[SP+5]
+			BR.NN fim
+			CALL mensagem_LCD
+			BR fim
+se_perdeu:		DSI
 			PUSH R1
-fim:			DSI
-			CALL mensagem_fim
+fim:			CALL mensagem_fim
+			CALL mensagem_recom
 			POP R2
 			POP R1
 			POP R1
 			JMP random
 ; MENSAGENS
-mensagem_inic:		MOV R2, 0000h
-			MOV M[CONTROL_TEXT],R2			;posiciona cursor na primeira coluna
-			MOV R5, strInicio
+mensagem_inic:		PUSH R1
+			PUSH R2
+			PUSH R3
+			MOV R1, 0000h
+			MOV M[CONTROL_TEXT], R1			;posiciona cursor na primeira coluna
+			MOV R2, strInicio
 
-ciclo_inic:		MOV R3, M[R5]
+ciclo_inic:		MOV R3, M[R2]
 			CMP R3, FIM_STR
 			JMP.Z fim_mensagem
-			INC R5
-			MOV M[WRITE_TEXT], R3
 			INC R2
-			MOV M[CONTROL_TEXT], R2 		; INC CURSOR
+			MOV M[WRITE_TEXT], R3
+			INC R1
+			MOV M[CONTROL_TEXT], R1			; INC CURSOR
 			BR ciclo_inic
 
-mensagem_fim:		MOV R7, R0
-			MOV M[IO_TEMP_INIC], R7		;para temporizador
-			MOV R7, M[SP+3]
-			ADD R7, 0100h
-			AND R7, FF00h
-			AND M[CONTROL_TEXT], R7
-			MOV R5, strFim
-
-ciclo_fim:		MOV R3, M[R5]
+mensagem_fim:		PUSH R1
+			PUSH R2
+			PUSH R3
+			MOV R1, R0
+			MOV M[IO_TEMP_INIC], R1		;para temporizador
+			MOV R1, M[SP+3]
+			ADD R1, 0100h
+			AND R1, FF00h
+			MOV M[CONTROL_TEXT], R1
+			MOV R2, strFim
+ciclo_fim:		MOV R3, M[R2]
 			CMP R3, FIM_STR
-			CALL.Z fim_mensagem
-			BR.Z mensagem_recom
-			INC R5
-			MOV M[WRITE_TEXT], R3
+			JMP.Z fim_mensagem
 			INC R2
-			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
+			MOV M[WRITE_TEXT], R3
+			INC R1
+			MOV M[CONTROL_TEXT], R1 ; INC CURSOR
 			BR ciclo_fim
 
-mensagem_recom:		MOV R5, M[SP+3]
-			ADD R5, 0100h
-			AND R5, FF00h
-			AND M[CONTROL_TEXT],R5
-			MOV M[SP+3], R5			;posiciona cursor nas primeiras coluna da linha seguinte
-			MOV R5, strRecomeco
+mensagem_recom:		PUSH R1
+			PUSH R2
+			PUSH R3
+			MOV R1, M[SP+3]
+			ADD R1, 0100h
+			AND R1, FF00h
+			MOV M[CONTROL_TEXT], R1
+			MOV M[SP+3], R1			;posiciona cursor nas primeiras coluna da linha seguinte
+			MOV R2, strRecomeco
 			MOV R4, R0
-
-ciclo_recom:		MOV R3, M[R5]
+ciclo_recom:		MOV R3, M[R2]
 			CMP R3, FIM_STR
 			BR.Z ciclo_reinicio2
-			INC R5
-			MOV M[WRITE_TEXT], R3
 			INC R2
-			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
+			MOV M[WRITE_TEXT], R3
+			INC R1
+			MOV M[CONTROL_TEXT], R1 ; INC CURSOR
 			BR ciclo_recom
 ciclo_reinicio2:	CMP R4, 5
-			JMP.Z random
+			JMP.Z return
 			BR ciclo_reinicio2
+return:			JMP fim_mensagem
 
-			BR mensagem_recom
-fim_mensagem:		RET
+mensagem_LCD:		PUSH R1
+			PUSH R2
+			PUSH R3
+			MOV R1, M[SP+3]
+			ADD R1, 0100h
+			AND R1, FF00h
+			MOV M[CONTROL_TEXT], R1
+			MOV M[SP+3], R1			;posiciona cursor nas primeiras coluna da linha seguinte
+			MOV R2, strPontuacao
+ciclo_LCD1:		MOV R3, M[R2] ; uma letra de cada vez
+			CMP R3, FIM_STR
+			BR.Z resultado
+			INC R2
+			MOV M[WRITE_LCD],R3
+			INC R1
+			MOV M[CONTROL_LCD],R1 ; INC CURSOR
+			BR ciclo_LCD1
+resultado:		MOV R3, 10
+			DIV R7, R3
+			ADD R7, 48
+			MOV M[WRITE_LCD], R7
+			INC R1
+			MOV M[CONTROL_LCD],R1 ; INC CURSOR
+			MOV M[WRITE_LCD], R3
+			RET
+
+fim_mensagem:		POP R3
+			POP R2
+			POP R1
+			RET
+
+limpa_LCD:		PUSH R1
+			MOV R1, 8010h
+			MOV M[CONTROL_LCD], R1	;limpa display LCD
+			POP R1
+			RET

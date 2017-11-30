@@ -8,6 +8,8 @@
 	IO_DISPLAY1                      FFF1         CONSTANT
 	IO_DISPLAY2                      FFF2         CONSTANT
 	IO_DISPLAY3                      FFF3         CONSTANT
+	CONTROL_LCD                      FFF4         CONSTANT
+	WRITE_LCD                        FFF5         CONSTANT
 	IO_TEMP_CONT                     FFF6         CONSTANT
 	IO_TEMP_INIC                     FFF7         CONSTANT
 	IO_LEDS                          FFF8         CONSTANT
@@ -20,6 +22,7 @@
 	strFim                           8000           STRING
 	strRecomeco                      800C           STRING
 	strInicio                        802A           STRING
+	strPontuacao                     804C           STRING
 	INT1                             FE01         VARIABLE
 	INT2                             FE02         VARIABLE
 	INT3                             FE03         VARIABLE
@@ -52,22 +55,28 @@
 	p_certa                          00C2            LABEL
 	ver_tracos                       00DA            LABEL
 	inicializa                       00EB            LABEL
-	iteracoes                        00FC            LABEL
-	salto                            0105            LABEL
-	random                           0106            LABEL
-	naoZero                          010C            LABEL
-	seZero                           0111            LABEL
-	corrige                          0117            LABEL
-	inicio                           0128            LABEL
-	reinicio                         0142            LABEL
-	ciclo_reinicio                   014B            LABEL
-	fim_perdeu                       0150            LABEL
-	fim                              0152            LABEL
-	mensagem_inic                    015A            LABEL
-	ciclo_inic                       0160            LABEL
-	mensagem_fim                     016C            LABEL
-	ciclo_fim                        0179            LABEL
-	mensagem_recom                   0186            LABEL
-	ciclo_recom                      0193            LABEL
-	ciclo_reinicio2                  019E            LABEL
-	fim_mensagem                     01A4            LABEL
+	iteracoes                        0102            LABEL
+	salto                            010B            LABEL
+	random                           010C            LABEL
+	naoZero                          0113            LABEL
+	seZero                           0118            LABEL
+	corrige                          011E            LABEL
+	inicio                           012F            LABEL
+	reinicio                         0149            LABEL
+	ciclo_reinicio                   0152            LABEL
+	se_ganhou                        0157            LABEL
+	se_perdeu                        015E            LABEL
+	fim                              0160            LABEL
+	mensagem_inic                    0169            LABEL
+	ciclo_inic                       0172            LABEL
+	mensagem_fim                     017E            LABEL
+	ciclo_fim                        018E            LABEL
+	mensagem_recom                   019A            LABEL
+	ciclo_recom                      01AA            LABEL
+	ciclo_reinicio2                  01B5            LABEL
+	return                           01BA            LABEL
+	mensagem_LCD                     01BC            LABEL
+	ciclo_LCD1                       01CB            LABEL
+	resultado                        01D6            LABEL
+	fim_mensagem                     01E3            LABEL
+	limpa_LCD                        01E7            LABEL
