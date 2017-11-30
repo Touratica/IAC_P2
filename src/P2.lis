@@ -58,16 +58,16 @@
 	naoZero                          010C            LABEL
 	seZero                           0111            LABEL
 	corrige                          0117            LABEL
-	inicio                           0127            LABEL
-	reinicio                         0141            LABEL
-	ciclo_reinicio                   014A            LABEL
-	fim_perdeu                       014F            LABEL
-	fim                              0151            LABEL
-	mensagem_inic                    0159            LABEL
-	ciclo_inic                       015F            LABEL
-	mensagem_fim                     016B            LABEL
-	ciclo_fim                        0178            LABEL
-	mensagem_recom                   0185            LABEL
-	ciclo_recom                      0192            LABEL
-	ciclo_reinicio2                  019D            LABEL
-	fim_mensagem                     01A3            LABEL
+	inicio                           0128            LABEL
+	reinicio                         0142            LABEL
+	ciclo_reinicio                   014B            LABEL
+	fim_perdeu                       0150            LABEL
+	fim                              0152            LABEL
+	mensagem_inic                    015A            LABEL
+	ciclo_inic                       0160            LABEL
+	mensagem_fim                     016C            LABEL
+	ciclo_fim                        0179            LABEL
+	mensagem_recom                   0186            LABEL
+	ciclo_recom                      0193            LABEL
+	ciclo_reinicio2                  019E            LABEL
+	fim_mensagem                     01A4            LABEL

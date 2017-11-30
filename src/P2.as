@@ -244,6 +244,7 @@ corrige:		MOV R2, 6				;coloca em R2 o valor 6
 			AND R1, 0007h			;seleciona a peca da direita da chave
 			DIV R1, R2				;divide o valor da peca por 6
 			INC R2					;incrementa o resto da divisao
+			SHL R2, 12
 			POP R1					;devolve o valor da chave a R1
 			AND R1, 0FF8h			;seleciona as 3 pecas da esquerda
 			ADD R1, R2				;adiciona a peca da direita
