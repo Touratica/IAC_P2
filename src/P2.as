@@ -58,8 +58,8 @@ INT5F:			SHL R2, 3
 INT6F:			SHL R2, 3
 			ADD R2, 6
 			RTI
-INTIA:			MOV R5, INT_MASK
-			MOV M[INT_MASK_ADDR], R5
+INTIA:			MOV R5, 1
+			MOV M[IO_TEMP_INIC], R5
 			MOV R4, 5
 			RTI
 TEMP:			SHR R1, 1
@@ -78,18 +78,17 @@ muda_linha:		MOV R1, 000Ah				;codigo de mudanca de linha
 			MOV R2, 0				;poe valor da tentativa a 0
 			MOV R1, FFFFh
 			MOV M[IO_LEDS], R1
-			POP R1					;retira ultima entrada do stack
+			POP R3					;retira ultima entrada do stack
 			ENI
 opcao:			CMP R4, 5
 			JMP.Z reinicio
-			MOV R4, 4				;inicializa contador de tracos
+			MOV R3, 4				;inicializa contador de tracos
 			CMP R7, 12				;verifica o numero de tentativas
-			JMP.Z fim				;se numero tentativas > 12, utilizador perde
+			JMP.Z fim_perdeu			;se numero tentativas > 12, utilizador perde
 			CMP R2, 01FFh				;verifica se utilizador já introduzio tentativa
 			BR.NP opcao				;loop até utilizador introduizir tentativa
 
-tentativa:		PUSH R2
-			DSI
+tentativa:		DSI
 			INC R7					;incrementa numero de tentativas
 			PUSH R7
 			MOV R6, 10
@@ -106,6 +105,7 @@ tentativa:		PUSH R2
 			MOV M[IO_DISPLAY3], R6
 			POP R7
 			MOV R6, 0				;inicia contador de pecas
+			MOV R1, M[SP+1]
 			PUSH R1					;coloca chave mestra no stack (outra vez)
 			PUSH R2					;coloca tentativa no stack
 tenta_certa:		INC R6					;incrementa contador de pecas
@@ -176,21 +176,20 @@ p_certa:		MOV R1, 'x'				;poe o código ASCII de x em R1
 			DEC R4					;decrementa contador de tracos
 			JMP verifica			;salta para verifica
 
-ver_tracos:		CMP R4, 0				;se contador de tracos for 0, nao falta por mais nenhum
+ver_tracos:		CMP R3, 0				;se contador de tracos for 0, nao falta por mais nenhum
 			JMP.Z muda_linha		;se for 0, salta para muda_linha
 			MOV R1, '-'				;poe o código ASCII de - em R1
 			MOV M[FFFEh], R1		;escreve um - na janela de texto
-			DEC R4					;decrementa contador de tracos
+			DEC R3					;decrementa contador de tracos
 			BR ver_tracos			;salta para ver_tracos
 
 inicializa:		MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
 			MOV SP, R1				;inicializa SP com o valor de R1
-			MOV R7, 7FFFh
-			ADD R7, INT_MASK
-			MOV M[INT_MASK_ADDR], R7	;ativa interrupcoes exceto timer
+			MOV R1, INT_MASK
+			MOV M[INT_MASK_ADDR], R1	;ativa interrupcoes
 			;CALL limpa_LCD
 			MOV R1, FFFFh
-			MOV M[CONTROL_TEXT], R2 		;inicialziar janela de texto
+			MOV M[CONTROL_TEXT], R1 		;inicialziar janela de texto
 			MOV R4, R0
 			MOV R1, R0
 			CALL mensagem_inic
@@ -236,22 +235,33 @@ corrige:		MOV R2, 6				;coloca em R2 o valor 6
 
 inicio:			MOV R1, FFFFh
 			MOV M[IO_LEDS], R1
-			MOV R6, M[SP+1]			;poe em R6 o valor da chave mestre
 			MOV R2, R0				;poe valor da tentativa a 0
 			MOV R7, R0				;inicializa contador tentativas
 			MOV R4, 5
 			MOV M[IO_TEMP_CONT], R4
 			MOV R4, 1
 			MOV M[IO_TEMP_INIC], R4
+			MOV R4, R0
 			ENI
-			MOV R2, R0
 			JMP opcao				;salta para a rotina label opcao
 
-reinicio:		CALL mensagem_recom
-			JMP random
+reinicio:		DSI
+			MOV R7, R0
+			MOV M[IO_TEMP_INIC], R7		;para temporizador
+			POP R4
+			MOV R4, R0
+			CALL mensagem_recom
+			ENI
+ciclo_reinicio:		CMP R4, 5
+			JMP.Z random
+			BR ciclo_reinicio
 
-fim:			CALL mensagem_fim
+fim_perdeu:		DSI
+			PUSH R1
+fim:			DSI
+			CALL mensagem_fim
 			POP R2
+			POP R1
 			POP R1
 			JMP random
 ; MENSAGENS
@@ -268,9 +278,8 @@ ciclo_inic:		MOV R3, M[R5]
 			MOV M[FFFCh], R2 		; INC CURSOR
 			BR ciclo_inic
 
-mensagem_fim:		MOV R7, 7FFFh
-			ADD R7, INT_MASK
-			MOV M[INT_MASK_ADDR], R7	;ativa interrupcoes exceto timer
+mensagem_fim:		MOV R7, R0
+			MOV M[IO_TEMP_INIC], R7		;para temporizador
 			MOV R2, 0100h
 			MOV M[FFFCh],R2			;posiciona cursor nas primeiras linha e coluna
 			MOV R5, strFim
