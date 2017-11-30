@@ -72,8 +72,10 @@ TEMP:			SHR R1, 1
 			RTI
 
 ;CODIGO
-muda_linha:		MOV R1, 000Ah				;codigo de mudanca de linha
-			MOV M[WRITE_TEXT], R1			;muda de linha na janela de texto
+muda_linha:		MOV R1, M[SP+5]
+			ADD R1, 0100h
+			AND R1, FF00h
+			MOV M[CONTROL_TEXT], R1			;muda de linha na janela de texto
 			POP R2					;retira ultima entrada do stack
 			MOV R2, 0				;poe valor da tentativa a 0
 			MOV R1, FFFFh
@@ -103,8 +105,11 @@ tentativa:		DSI
 			MOV R6, 10
 			DIV R7, R6
 			MOV M[IO_DISPLAY3], R6
-			MOV R7, 000Ah
-			MOV M[WRITE_TEXT], R7
+			MOV R7, M[SP+4]
+			ADD R7, 0100h
+			AND R7, FF00h
+			MOV M[CONTROL_TEXT], R7
+			MOV R7, M[SP+4]
 			POP R7
 			MOV R6, 0				;inicia contador de pecas
 			MOV R1, M[SP+1]
@@ -152,8 +157,12 @@ verifica2:		CMP R5, 4				;se segundo contador for 4, ja comparou a peca da chave
 			BR.NZ inic_errada		;se nao for 4, salta para inic_errada
 			BR tenta_errada			;se for, salta para tenta_errada
 
-p_errada:		MOV R1, 'o'				;poe o código ASCII de o em R1
-			MOV M[FFFEh], R1		;escreve um o na janela de texto
+p_errada:		MOV R1, M[SP+5]
+			INC R1
+			MOV M[CONTROL_TEXT], R1
+			MOV M[SP+5], R1
+			MOV R1, 'o'				;poe o código ASCII de o em R1
+			MOV M[WRITE_TEXT], R1		;escreve um o na janela de texto
 			POP R2					;retoma o valor da tentativa a R2
 			AND R2, 01FFh			;retira a peca igual da tentativa
 			POP R1					;retoma o valor da chave a R1
@@ -165,8 +174,12 @@ p_errada:		MOV R1, 'o'				;poe o código ASCII de o em R1
 			DEC R4					;decrementa contador de tracos
 			JMP verifica2			;salta para verifica
 
-p_certa:		MOV R1, 'x'				;poe o código ASCII de x em R1
-			MOV M[FFFEh], R1		;escreve um x na janela de texto
+p_certa:		MOV R1, M[SP+5]
+			INC R1
+			MOV M[CONTROL_TEXT], R1
+			MOV M[SP+5], R1
+			MOV R1, 'x'				;poe o código ASCII de x em R1
+			MOV M[WRITE_TEXT], R1		;escreve um x na janela de texto
 			POP R2					;retoma o valor da tentativa a R2
 			AND R2, 01FFh			;retira a peca igual da tentativa
 			POP R1					;retoma o valor da chave a R1
@@ -180,13 +193,18 @@ p_certa:		MOV R1, 'x'				;poe o código ASCII de x em R1
 
 ver_tracos:		CMP R3, 0				;se contador de tracos for 0, nao falta por mais nenhum
 			JMP.Z muda_linha		;se for 0, salta para muda_linha
+			MOV R1, M[SP+5]
+			INC R1
+			MOV M[CONTROL_TEXT], R1
+			MOV M[SP+5], R1
 			MOV R1, '-'				;poe o código ASCII de - em R1
-			MOV M[FFFEh], R1		;escreve um - na janela de texto
+			MOV M[WRITE_TEXT], R1		;escreve um - na janela de texto
 			DEC R3					;decrementa contador de tracos
 			BR ver_tracos			;salta para ver_tracos
 
 inicializa:		MOV R1, SP_INICIAL		;poe o valor de SP_INICIAL em R1
 			MOV SP, R1				;inicializa SP com o valor de R1
+			PUSH R0
 			MOV R1, INT_MASK
 			MOV M[INT_MASK_ADDR], R1	;ativa interrupcoes
 			;CALL limpa_LCD
@@ -238,6 +256,10 @@ corrige:		MOV R2, 6				;coloca em R2 o valor 6
 inicio:			MOV R1, FFFFh
 			MOV M[IO_LEDS], R1
 			MOV R2, R0				;poe valor da tentativa a 0
+			MOV M[IO_DISPLAY0], R2
+			MOV M[IO_DISPLAY1], R2
+			MOV M[IO_DISPLAY2], R2
+			MOV M[IO_DISPLAY3], R2
 			MOV R7, R0				;inicializa contador tentativas
 			MOV R4, 5
 			MOV M[IO_TEMP_CONT], R4
@@ -282,8 +304,10 @@ ciclo_inic:		MOV R3, M[R5]
 
 mensagem_fim:		MOV R7, R0
 			MOV M[IO_TEMP_INIC], R7		;para temporizador
-			MOV R7, 000Ah
-			ADD M[WRITE_TEXT],R7			;posiciona cursor nas primeiras linha e coluna
+			MOV R7, M[SP+3]
+			ADD R7, 0100h
+			AND R7, FF00h
+			AND M[CONTROL_TEXT], R7
 			MOV R5, strFim
 
 ciclo_fim:		MOV R3, M[R5]
@@ -296,18 +320,25 @@ ciclo_fim:		MOV R3, M[R5]
 			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
 			BR ciclo_fim
 
-mensagem_recom:		MOV R5, 000Ah
-			AND M[WRITE_TEXT],R5			;posiciona cursor nas primeiras linha e coluna
+mensagem_recom:		MOV R5, M[SP+3]
+			ADD R5, 0100h
+			AND R5, FF00h
+			AND M[CONTROL_TEXT],R5
+			MOV M[SP+3], R5			;posiciona cursor nas primeiras coluna da linha seguinte
 			MOV R5, strRecomeco
+			MOV R4, R0
 
 ciclo_recom:		MOV R3, M[R5]
 			CMP R3, FIM_STR
-			BR.Z fim_mensagem
+			BR.Z ciclo_reinicio2
 			INC R5
 			MOV M[WRITE_TEXT], R3
 			INC R2
 			MOV M[CONTROL_TEXT], R2 ; INC CURSOR
 			BR ciclo_recom
+ciclo_reinicio2:	CMP R4, 5
+			JMP.Z random
+			BR ciclo_reinicio2
 
 			BR mensagem_recom
 fim_mensagem:		RET
