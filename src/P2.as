@@ -213,6 +213,9 @@ inicializa:		MOV R1, 8000h
 			MOV R1, INT_MASK
 			MOV M[INT_MASK_ADDR], R1	;ativa interrupcoes
 			CALL limpa_LCD
+			MOV R7, 12
+			CALL mensagem_LCD
+			MOV R7, R0
 			MOV R1, FFFFh
 			MOV M[CONTROL_TEXT], R1 		;inicialziar janela de texto
 			MOV R4, R0
@@ -359,21 +362,15 @@ ciclo_reinicio2:	CMP R4, 5
 			BR ciclo_reinicio2
 return:			JMP fim_mensagem
 
-mensagem_LCD:		PUSH R1
-			PUSH R2
-			PUSH R3
-			MOV R1, M[SP+3]
-			ADD R1, 0100h
-			AND R1, FF00h
+mensagem_LCD:		MOV R1, 8000h
 			MOV M[CONTROL_TEXT], R1
-			MOV M[SP+3], R1			;posiciona cursor nas primeiras coluna da linha seguinte
 			MOV R2, strPontuacao
 ciclo_LCD1:		MOV R3, M[R2] ; uma letra de cada vez
 			CMP R3, FIM_STR
 			BR.Z resultado
 			INC R2
 			MOV M[WRITE_LCD],R3
-			INC R1		
+			INC R1
 			MOV M[CONTROL_LCD],R1 ; INC CURSOR
 			BR ciclo_LCD1
 resultado:		MOV R3, 10
